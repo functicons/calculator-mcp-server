@@ -5,7 +5,7 @@ set -e
 IMAGE_NAME="calculator-mcp-server"
 IMAGE_TAG="latest"
 CONTAINER_NAME="calculator-mcp-server"
-HOST_PORT="8000" # Port on the host
+HOST_PORT="8080" # Port on the host
 SERVER_URL="http://localhost:${HOST_PORT}"
 
 # Optional: Docker network settings
@@ -46,7 +46,7 @@ fi
 # Prepare docker run arguments
 DOCKER_RUN_ARGS=(
     -d
-    -p "127.0.0.1:${HOST_PORT}:8000"
+    -p "127.0.0.1:${HOST_PORT}:8080"
     --name "${CONTAINER_NAME}"
 )
 

@@ -7,7 +7,7 @@ ENV PYTHONUNBUFFERED 1
 # Adding /app and /app/src to PYTHONPATH can help with module resolution.
 ENV PYTHONPATH "${PYTHONPATH}:/app:/app/src"
 ENV HOST 0.0.0.0
-ENV PORT 8000
+ENV PORT 8080
 ENV INSPECTOR_PORT 6274
 ENV NODE_VERSION 23.x
 

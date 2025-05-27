@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 # These are set in the Dockerfile. Uvicorn (used by FastMCP for streamable-http)
 # will also pick these up if FastMCP passes them or by default.
 APP_HOST = os.environ.get("HOST", "0.0.0.0")
-APP_PORT = int(os.environ.get("PORT", 8000))
+APP_PORT = int(os.environ.get("PORT", 8080))
 logger.info(f"FastMCP configured with host={APP_HOST}, port={APP_PORT}.")
 
 mcp = FastMCP(

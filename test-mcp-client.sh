@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-SERVER_URL_DEFAULT="http://localhost:8000"
+SERVER_URL_DEFAULT="http://localhost:8080"
 MCP_ENDPOINT_PATH="/mcp" # Default MCP endpoint
 TIMEOUT_SECONDS=5
 

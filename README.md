@@ -2,6 +2,7 @@
 # Calculator MCP Server
 
 The Calculator MCP Server is a backend service designed to provide arithmetic calculation capabilities to AI models, particularly Large Language Models (LLMs), via the Model Context Protocol (MCP). It allows LLMs to offload mathematical computations, ensuring accuracy and reliability for numerical queries.
+For example, when the user asks the LLM "what's the result of 3.8 - 3.11?", the LLM will call the server with "3.8 - 3.11" to perform the calculation first and then answer the user.
 
 This server is built on top of the official [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) and implements a single MCP tool named `calculator_tool` that accepts a string-based arithmetic expression and returns the calculated numerical result.
 
