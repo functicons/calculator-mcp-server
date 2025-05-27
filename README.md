@@ -3,7 +3,9 @@
 
 The Calculator MCP Server is a backend service designed to provide arithmetic calculation capabilities to AI models, particularly Large Language Models (LLMs), via the Model Context Protocol (MCP). It allows LLMs to offload mathematical computations, ensuring accuracy and reliability for numerical queries.
 
-This server implements a single MCP tool named `calculator_tool` that accepts a string-based arithmetic expression and returns the calculated numerical result.
+This server is built on top of the official [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) and implements a single MCP tool named `calculator_tool` that accepts a string-based arithmetic expression and returns the calculated numerical result.
+
+The server is packaged as a Docker image.
 
 ## Features
 
@@ -13,31 +15,6 @@ This server implements a single MCP tool named `calculator_tool` that accepts a 
 * **Standardized API:** Exposes functionality through the `tools/call` MCP method.
 * **Dockerized:** Includes a Dockerfile for easy containerization, deployment, and testing.
 * **Comprehensive Error Handling:** Returns structured JSON-RPC errors for invalid inputs or calculation issues.
-
-## Project Structure
-
-```
-calculator-mcp-server/
-├── .gitignore
-├── Dockerfile
-├── README.md
-├── developer_guide.md
-├── requirements.txt
-├── requirements-dev.txt
-├── build-image.sh
-├── start-mcp-server.sh
-├── stop-mcp-server.sh
-├── run-tests.sh
-├── test-mcp-client.sh
-├── src/
-│   ├── __init__.py
-│   ├── calculator_server.py
-│   └── safe_eval.py
-└── tests/
-    ├── __init__.py
-    ├── test_calculator_tool.py
-    └── test_safe_eval.py
-```
 
 ## Prerequisites
 
@@ -70,23 +47,6 @@ To start the server:
 ./start-mcp-server.sh
 ```
 This script will ensure the image is built, start the server in a Docker container, and check its status. The server listens on port 8000 by default.
-
-### 4. Local Development (Alternative, for code editing)
-
-While Docker is used for running and testing, you might want a local Python environment for code editing and IDE features.
-
-**a. Create a Virtual Environment (Optional, for IDEs):**
-```bash
-python3.12 -m venv venv
-source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-```
-
-**b. Install Dependencies (Optional, for IDEs):**
-```bash
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
-```
-Note: Actual execution and testing will still happen via Docker scripts.
 
 ## Usage
 
@@ -151,4 +111,4 @@ If you started the server using `./start-mcp-server.sh`, you can stop it with:
 
 ## Contributing
 
-Please refer to the `developer_guide.md`.
+Please refer to the [developer_guide.md](./developer_guide.md).
