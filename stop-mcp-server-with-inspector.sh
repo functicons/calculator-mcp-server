@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker stop mcp-calculator-inspector && docker rm mcp-calculator-inspector
+docker stop mcp-shell-inspector && docker rm mcp-shell-inspector

@@ -2,9 +2,9 @@
 
 set -e
 
-IMAGE_NAME="calculator-mcp-server"
+IMAGE_NAME="shell-mcp-server"
 IMAGE_TAG="latest"
-CONTAINER_NAME="calculator-mcp-server"
+CONTAINER_NAME="shell-mcp-server"
 HOST_PORT="8080" # Port on the host
 SERVER_URL="http://localhost:${HOST_PORT}"
 
@@ -12,9 +12,35 @@ SERVER_URL="http://localhost:${HOST_PORT}"
 # To use a Docker network, set DOCKER_NETWORK_NAME.
 # The DOCKER_NETWORK_HOSTNAME will be used as the container's hostname within that network.
 #DOCKER_NETWORK_NAME="docker-network" # Example: "docker-network". Leave empty to not use a specific network.
-#DOCKER_NETWORK_HOSTNAME="calculator-mcp-server" # Only used if DOCKER_NETWORK_NAME is set.
+#DOCKER_NETWORK_HOSTNAME="shell-mcp-server" # Only used if DOCKER_NETWORK_NAME is set.
 
 # --- Script Start ---
+# Usage: ./start-mcp-server.sh [-v /path/on/host:/path/in/container] ...
+# Additional arguments are passed to docker run, for example, to mount volumes.
+
+declare -a VOLUME_ARGS=()
+# Parse command-line arguments for volume mounts
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -v|--volume)
+            if [ -z "$2" ]; then
+                echo "Error: Argument for $1 is missing" >&2
+                exit 1
+            fi
+            VOLUME_ARGS+=("-v" "$2")
+            shift # past argument
+            shift # past value
+            ;;
+        *) # unknown option
+            # If you want to stop parsing on unknown options, uncomment the following:
+            # echo "Unknown option: $1" >&2
+            # exit 1
+            # For now, assume other arguments are not for this script and break
+            break
+            ;;
+    esac
+done
+
 
 # Function to print error messages and exit
 error_exit() {
@@ -48,6 +74,7 @@ DOCKER_RUN_ARGS=(
     -d
     -p "127.0.0.1:${HOST_PORT}:8080"
     --name "${CONTAINER_NAME}"
+    "${VOLUME_ARGS[@]}" # Add any volume mount arguments
 )
 
 # Check if DOCKER_NETWORK_NAME is specified
@@ -66,8 +93,18 @@ fi
 
 DOCKER_RUN_ARGS+=("${IMAGE_NAME}:${IMAGE_TAG}")
 
+# Safely print the command, escaping arguments as needed for display
+# This is a simplified version; for perfect escaping, a more complex function would be needed.
+COMMAND_TO_DISPLAY="docker run"
+for arg in "${DOCKER_RUN_ARGS[@]}"; do
+    if [[ "${arg}" == *" "* ]]; then
+        COMMAND_TO_DISPLAY+=" \"${arg}\"" # Quote arguments with spaces
+    else
+        COMMAND_TO_DISPLAY+=" ${arg}"
+    fi
+done
 echo "Starting new container ${CONTAINER_NAME} with the following command:"
-echo "docker run ${DOCKER_RUN_ARGS[*]}" # Print the command for clarity
+echo "${COMMAND_TO_DISPLAY}"
 set -x # Enable command echoing
 docker run "${DOCKER_RUN_ARGS[@]}"
 set +x # Disable command echoing

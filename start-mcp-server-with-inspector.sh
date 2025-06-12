@@ -1,9 +1,35 @@
 #!/bin/bash
 set -ex
-IMAGE_NAME="calculator-mcp-server"
+
+# Usage: ./start-mcp-server-with-inspector.sh [-v /path/on/host:/path/in/container] ...
+# Additional arguments are passed to docker run, for example, to mount volumes.
+
+declare -a VOLUME_ARGS=()
+# Parse command-line arguments for volume mounts
+PASSTHROUGH_ARGS=() # To collect non-script arguments
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -v|--volume)
+            if [ -z "$2" ]; then
+                echo "Error: Argument for $1 is missing" >&2
+                exit 1
+            fi
+            VOLUME_ARGS+=("-v" "$2")
+            shift # past argument
+            shift # past value
+            ;;
+        *) # unknown option or an argument for mcp dev
+            PASSTHROUGH_ARGS+=("$1")
+            shift # past argument
+            ;;
+    esac
+done
+
+
+IMAGE_NAME="shell-mcp-server"
 IMAGE_TAG="latest"
-CONTAINER_NAME="mcp-calculator-inspector" # Different name for inspector container
-HOST_MCP_PORT="6277" 
+CONTAINER_NAME="mcp-shell-inspector" # Different name for inspector container
+HOST_MCP_PORT="6277"
 HOST_INSPECTOR_PORT="6274"
 CONTAINER_MCP_PORT="6277" # Port for mcp dev server inside container
 CONTAINER_INSPECTOR_PORT="6274" # Port for inspector inside container
@@ -37,8 +63,9 @@ docker run -d \
     -p "${HOST_MCP_PORT}:${CONTAINER_MCP_PORT}" \
     -p "${HOST_INSPECTOR_PORT}:${CONTAINER_INSPECTOR_PORT}" \
     --name "${CONTAINER_NAME}" \
+    "${VOLUME_ARGS[@]}" \
     "${IMAGE_NAME}:${IMAGE_TAG}" \
-    mcp dev src/calculator_server.py
+    mcp dev src/shell_server.py "${PASSTHROUGH_ARGS[@]}" # Pass any remaining args to mcp dev
 
 echo "Container ${CONTAINER_NAME} started."
 echo "MCP Server (proxied by mcp dev) should be accessible at http://localhost:${HOST_MCP_PORT}/mcp"

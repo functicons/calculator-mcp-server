@@ -9,17 +9,19 @@ usage() {
     echo "Usage: $0 <subcommand> [options]"
     echo ""
     echo "Subcommands:"
-    echo "  list [server_url]              Performs a tools/list request."
-    echo "  call <expression> [server_url]      Calls the calculator_tool with an arithmetic expression."
+    echo "  list [server_url]                               Performs a tools/list request."
+    echo "  call [-w <dir> | --cwd <dir>] <cmd_str> [srv_url] Calls the shell_tool with a shell command, optionally in a working directory."
     echo ""
-    echo "Arguments:"
-    echo "  expression    The arithmetic expression to evaluate (for 'call' subcommand)."
-    echo "  server_url    Optional. The base URL of the MCP server (default: ${SERVER_URL_DEFAULT})."
+    echo "Arguments for 'call':"
+    echo "  -w <dir>, --cwd <dir>  Optional. The working directory for the command."
+    echo "  cmd_str                The shell command to execute."
+    echo "  srv_url                Optional. The base URL of the MCP server (default: ${SERVER_URL_DEFAULT})."
     echo ""
     echo "Examples:"
     echo "  $0 list"
-    echo "  $0 call \"2 * (3 + 4)\""
-    echo "  $0 call \"10 / 0\" http://custom-server:8080"
+    echo "  $0 call \"ls -la\""
+    echo "  $0 call -w /app \"ls -la\""
+    echo "  $0 call --cwd /tmp \"echo 'Hello World' > test.txt && cat test.txt\" http://custom-server:8080"
     exit 1
 }
 
@@ -113,30 +115,48 @@ EOF
         ;;
 
     call)
+        WORKING_DIR=""
+        # Parse optional -w/--cwd argument first
+        if [[ "$1" == "-w" || "$1" == "--cwd" ]]; then
+            if [ -z "$2" ]; then
+                echo "Error: Argument for $1 is missing" >&2
+                usage
+            fi
+            WORKING_DIR="$2"
+            shift # past argument
+            shift # past value
+        fi
+
         if [ -z "$1" ]; then
-            echo "Error: Expression argument is required for 'call' subcommand."
+            echo "Error: Command string argument is required for 'call' subcommand."
             usage
         fi
-        EXPRESSION="$1"
-        SERVER_URL="${2:-$SERVER_URL_DEFAULT}"
+        COMMAND_STRING="$1"
+        SERVER_URL="${2:-$SERVER_URL_DEFAULT}" # SERVER_URL is now $2 if -w was present, or $1 if not (already shifted)
+
         TARGET_URL="${SERVER_URL}${MCP_ENDPOINT_PATH}"
         REQUEST_ID="cli-call-$(date +%s%N)"
+
+        # Construct arguments JSON dynamically
+        ARGUMENTS_JSON="{\"command\": \"${COMMAND_STRING}\""
+        if [ -n "${WORKING_DIR}" ]; then
+            ARGUMENTS_JSON+=", \"working_dir\": \"${WORKING_DIR}\""
+        fi
+        ARGUMENTS_JSON+="}"
 
         JSON_PAYLOAD=$(cat <<EOF
 {
     "jsonrpc": "2.0",
     "method": "tools/call",
     "params": {
-        "name": "calculator_tool",
-        "arguments": {
-            "expression": "${EXPRESSION}"
-        }
+        "name": "shell_tool",
+        "arguments": ${ARGUMENTS_JSON}
     },
     "id": "${REQUEST_ID}"
 }
 EOF
 )
-        send_request "${JSON_PAYLOAD}" "${TARGET_URL}" "tools/call (calculator_tool)"
+        send_request "${JSON_PAYLOAD}" "${TARGET_URL}" "tools/call (shell_tool)"
         ;;
     
     *)

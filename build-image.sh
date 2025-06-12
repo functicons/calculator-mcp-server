@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-IMAGE_NAME="calculator-mcp-server"
+IMAGE_NAME="shell-mcp-server"
 IMAGE_TAG="latest"
 echo "Building Docker image ${IMAGE_NAME}:${IMAGE_TAG}..."
 # Build from the current directory (project root)

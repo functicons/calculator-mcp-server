@@ -60,4 +60,4 @@ EXPOSE ${INSPECTOR_PORT}
 # Define the command to run the application (when not running tests)
 # This is for the default streamable-http mode.
 # For inspector mode, the command will be overridden in start-mcp-server-with-inspector.sh
-CMD ["python3", "src/calculator_server.py"]
+CMD ["python3", "src/shell_server.py"]

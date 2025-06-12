@@ -1,21 +1,20 @@
 
-# Calculator MCP Server
+# Shell MCP Server
 
-The Calculator MCP Server is a backend service designed to provide arithmetic calculation capabilities to AI models, particularly Large Language Models (LLMs), via the Model Context Protocol (MCP). It allows LLMs to offload mathematical computations, ensuring accuracy and reliability for numerical queries.
-For example, when the user asks the LLM "what's the result of 3.8 - 3.11?", the LLM will call the server with "3.8 - 3.11" to perform the calculation first and then answer the user.
+The Shell MCP Server is a backend service designed to provide shell command execution capabilities to AI models, particularly Large Language Models (LLMs), via the Model Context Protocol (MCP). It allows LLMs to offload shell command execution, enabling them to interact with the system environment.
+For example, when the user asks the LLM "what are the files in the current directory?", the LLM will call the server with "ls -la" to perform the command first and then answer the user.
 
-This server is built on top of the official [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) and implements a single MCP tool named `calculator_tool` that accepts a string-based arithmetic expression and returns the calculated numerical result.
+This server is built on top of the official [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk) and implements a single MCP tool named `shell_tool` that accepts a string-based shell command and returns its standard output, standard error, and return code.
 
 The server is packaged as a Docker image.
 
 ## Features
 
 * **MCP Compliant:** Adheres to the Model Context Protocol for seamless integration.
-* **Accurate Calculations:** Provides precise results for basic arithmetic operations (+, -, \*, /).
-* **Safe Evaluation:** Uses a secure method to parse and evaluate mathematical expressions, preventing arbitrary code execution.
+* **Command Execution:** Executes arbitrary shell commands, capturing their output (stdout, stderr) and return code.
 * **Standardized API:** Exposes functionality through the `tools/call` MCP method.
 * **Dockerized:** Includes a Dockerfile for easy containerization, deployment, and testing.
-* **Comprehensive Error Handling:** Returns structured JSON-RPC errors for invalid inputs or calculation issues.
+* **Comprehensive Error Handling:** Returns structured JSON-RPC errors for invalid inputs or execution issues.
 
 ## Prerequisites
 
@@ -30,7 +29,7 @@ The server is packaged as a Docker image.
 If this project is in a Git repository, clone it:
 ```bash
 git clone <repository-url>
-cd calculator-mcp-server
+cd shell-mcp-server
 ```
 
 ### 2. Build the Docker Image (Optional - Handled by `run-tests.sh` and `start-mcp-server.sh` if needed)
@@ -47,37 +46,66 @@ To start the server:
 ```bash
 ./start-mcp-server.sh
 ```
-This script will ensure the image is built, start the server in a Docker container, and check its status. The server listens on port 8000 by default.
+This script will ensure the image is built, start the server in a Docker container, and check its status. The server listens on port 8080 by default (as per the scripts, not 8000).
+
+You can also mount host directories into the container using the `-v` or `--volume` option:
+```bash
+./start-mcp-server.sh -v /path/on/host:/path/in/container
+# Example: Mount current directory's 'data' subfolder to /app/data in container
+./start-mcp-server.sh -v "$(pwd)/data:/app/data"
+```
 
 ## Usage
 
-The Calculator MCP Server exposes its functionality via MCP. An MCP client (e.g., an LLM host application) would interact with it as follows:
+The Shell MCP Server exposes its functionality via MCP. An MCP client (e.g., an LLM host application) would interact with it as follows:
 
 1.  **Initialize Connection:** The client establishes a connection with the server (running in Docker).
 2.  **Tool Discovery (Optional but Recommended):** The client sends a `tools/list` request.
-3.  **Tool Invocation:** The client sends a `tools/call` request to use the `calculator_tool`.
+3.  **Tool Invocation:** The client sends a `tools/call` request to use the `shell_tool`.
 
     **Request:**
+    The `shell_tool` accepts a `command` (string, required) and an optional `working_dir` (string).
+    If `working_dir` is provided, the command will be executed in that directory inside the container.
+
+    *Basic command:*
     ```json
     {
         "jsonrpc": "2.0",
         "method": "tools/call",
         "params": {
-            "name": "calculator_tool",
+            "name": "shell_tool",
             "arguments": {
-                "expression": "10 * (2 + 3) - 5 / 2"
+                "command": "ls -l /app"
             }
         },
         "id": "request-id-123"
     }
     ```
 
-    **Successful Response:**
+    *Command with a working directory:*
+    ```json
+    {
+        "jsonrpc": "2.0",
+        "method": "tools/call",
+        "params": {
+            "name": "shell_tool",
+            "arguments": {
+                "command": "ls -l",
+                "working_dir": "/tmp"
+            }
+        },
+        "id": "request-id-456"
+    }
+    ```
+
+    **Successful Response (Example):**
     ```json
     {
         "jsonrpc": "2.0",
         "result": {
-            "value": 47.5
+            "stdout": "total 0\n-rw-r--r-- 1 user user 0 Mar 15 10:00 myfile.txt",
+            "stderr": "",
+            "returncode": 0
         },
         "id": "request-id-123"
     }
@@ -88,11 +116,19 @@ The Calculator MCP Server exposes its functionality via MCP. An MCP client (e.g.
 A simple CLI client script is provided to test the running server. Make sure the server is running via `./start-mcp-server.sh`.
 
 ```bash
-./test-mcp-client.sh list"
+./test-mcp-client.sh list
 ```
 
+To call the `shell_tool`:
 ```bash
-./test-mcp-client.sh call "2+2"
+# Simple command
+./test-mcp-client.sh call "echo hello from readme"
+
+# Command with a working directory
+./test-mcp-client.sh call -w /tmp "pwd && ls -l"
+
+# Command with working directory and custom server URL
+./test-mcp-client.sh call --cwd /app "ls -l src" http://localhost:8080
 ```
 
 ## Running Tests

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-CONTAINER_NAME="calculator-mcp-server"
+CONTAINER_NAME="shell-mcp-server"
 
 echo "Attempting to stop and remove Docker container ${CONTAINER_NAME}..."
 if docker ps -q -f name=${CONTAINER_NAME} | grep -q .; then # Check if container is running
