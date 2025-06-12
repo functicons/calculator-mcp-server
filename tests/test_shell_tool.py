@@ -67,7 +67,7 @@ def test_shell_tool_invalid_working_dir_non_existent():
     with pytest.raises(FastMCPError) as excinfo:
         shell_tool(command="ls", working_dir="non_existent_dir_6789")
     assert excinfo.value.args[1] == ERROR_INVALID_WORKING_DIR
-    assert "Working directory not found" in excinfo.value.message
+    assert "Working directory not found" in excinfo.value.args[0]
 
 # 5b. Error case: Invalid working_dir (is a file)
 # This requires creating a file and trying to use it as a CWD.
@@ -81,7 +81,7 @@ def test_shell_tool_invalid_working_dir_is_file(temp_test_dir_fixture):
         shell_tool(command="ls", working_dir=str(file_as_cwd))
 
     assert excinfo.value.args[1] == ERROR_INVALID_WORKING_DIR
-    assert "Specified working_dir is not a directory" in excinfo.value.message
+    assert "Specified working_dir is not a directory" in excinfo.value.args[0]
 
 # 6. Input validation for command
 def test_shell_tool_invalid_command_type():
@@ -90,7 +90,7 @@ def test_shell_tool_invalid_command_type():
     # Check for the generic invalid params error code or a specific one if defined
     # FastMCP default for type mismatch from signature is -32602
     assert excinfo.value.args[1] == -32602
-    assert "Invalid input: command must be a string" in excinfo.value.message
+    assert "Invalid input: command must be a string" in excinfo.value.args[0]
 
 def test_shell_tool_missing_command_argument():
     # This test case assumes that the tool dispatcher or FastMCP itself
@@ -105,7 +105,7 @@ def test_shell_tool_invalid_working_dir_type():
     with pytest.raises(FastMCPError) as excinfo:
         shell_tool(command="ls", working_dir=123) # Pass an integer
     assert excinfo.value.args[1] == -32602
-    assert "Invalid input: working_dir must be a string if provided" in excinfo.value.message
+    assert "Invalid input: working_dir must be a string if provided" in excinfo.value.args[0]
 
 # Test that working_dir=None works as expected (default cwd)
 def test_shell_tool_working_dir_none():
