@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-IMAGE_NAME="calculator-mcp-server"
+IMAGE_NAME="shell-mcp-server"
 IMAGE_TAG="latest"
 
 echo "Ensuring Docker image ${IMAGE_NAME}:${IMAGE_TAG} is up to date..."
